@@ -2,18 +2,17 @@ import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { prisma } from './db';
-import { verifySlackSignature, captureRawBody } from './middleware/slackAuth';
+import { verifySlackSignature } from './middleware/slackAuth';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Apply raw body capture and Slack verification to all routes
-app.use(captureRawBody);
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(verifySlackSignature);
+// Use raw body parser for Slack endpoints
+app.use('/add', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
+app.use('/done', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
+app.use('/list', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
 
 interface SlackRequest extends Request {
   body: {

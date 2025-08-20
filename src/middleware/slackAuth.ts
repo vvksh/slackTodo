@@ -43,8 +43,8 @@ export const verifySlackSignature = (req: SlackRequest, res: Response, next: Nex
   }
   console.log('✅ [SLACK AUTH] Timestamp validation passed');
 
-  // Get raw body for signature verification
-  const body = req.rawBody || Buffer.from(JSON.stringify(req.body));
+  // Get raw body for signature verification (now comes from bodyParser.raw)
+  const body = req.body as Buffer;
   const sigBasestring = `v0:${timestamp}:${body}`;
   
   console.log('🔐 [SLACK AUTH] Raw body length:', body.length);
