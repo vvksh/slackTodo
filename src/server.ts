@@ -9,10 +9,24 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Use raw body parser for Slack endpoints
-app.use('/add', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
-app.use('/done', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
-app.use('/list', bodyParser.raw({ type: '*/*' }), verifySlackSignature, bodyParser.urlencoded({ extended: true }));
+// Custom middleware to handle Slack requests
+const parseSlackBody = (req: any, res: any, next: any) => {
+  // Store raw body for signature verification
+  req.rawBody = req.body;
+  
+  // Parse the Buffer as URL-encoded string
+  if (Buffer.isBuffer(req.body)) {
+    const bodyString = req.body.toString();
+    req.body = require('querystring').parse(bodyString);
+  }
+  
+  console.log('🔄 [PARSE] Parsed body:', req.body);
+  next();
+};
+
+app.use('/add', bodyParser.raw({ type: '*/*' }), verifySlackSignature, parseSlackBody);
+app.use('/done', bodyParser.raw({ type: '*/*' }), verifySlackSignature, parseSlackBody);
+app.use('/list', bodyParser.raw({ type: '*/*' }), verifySlackSignature, parseSlackBody);
 
 interface SlackRequest extends Request {
   body: {
